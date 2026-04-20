@@ -18,4 +18,8 @@ struct Entry: Identifiable {
         self.mood = mood
         self.note = note
     }
+    
+    var isEmpty: Bool {
+        note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 }

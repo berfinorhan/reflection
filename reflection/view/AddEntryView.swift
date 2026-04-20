@@ -21,7 +21,7 @@ struct AddEntryView: View {
             
             Button("Add Entry") {
                 let newEntry = Entry(date: date, mood: mood, note: note)
-                if !newEntry.note.trimmingCharacters(in: .whitespaces).isEmpty {
+                if !newEntry.isEmpty {
                     onSave(newEntry)
                     clearNoteState()
                     dismiss()

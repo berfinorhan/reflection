@@ -30,7 +30,7 @@ struct EditEntryView: View {
             
             Button("Save") {
                 let updatedEntry = Entry(id: entry.id, date: date, mood: mood, note: note)
-                if !updatedEntry.note.trimmingCharacters(in: .whitespaces).isEmpty {
+                if !updatedEntry.isEmpty {
                     onSave(updatedEntry)
                     dismiss()
                 }
