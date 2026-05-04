@@ -34,20 +34,27 @@ struct ContentView: View {
         mood: Mood.great,
         note: "Today was great actually :o")
     ]
-    
-//    @State private var entries: [Entry] = []
-    
+        
     @State private var moodFilter: Mood? = nil
+    @State private var searchText = ""
     
     private var sortedEntries: [Entry] {
         entries.sorted { $0.date > $1.date }
     }
     
     private var filteredEntries: [Entry] {
-        guard let moodFilter = moodFilter else { return sortedEntries }
-        return sortedEntries.filter { $0.mood == moodFilter }
+        sortedEntries.filter { entry in
+            let matchesMood = moodFilter == entry.mood || moodFilter == nil
+            let matchesSearch =  entry.note.localizedCaseInsensitiveContains(searchText) || searchText.isEmpty
+            return matchesMood && matchesSearch
+        }
     }
     
+    private var entryCount: String {
+        let count = filteredEntries.count
+        return count == 1 ? "\(count) entry" : "\(count) entries"
+    }
+        
     var body: some View {
         
         NavigationStack {
@@ -67,10 +74,11 @@ struct ContentView: View {
                 if entries.isEmpty {
                     EmptyListView(title: "No entries", subtitle: "Tap 'Add entry' to get started.")
                 } else if filteredEntries.isEmpty {
-                    EmptyListView(title: "No entries", subtitle: "No entries match your current filter.")
+                    EmptyListView(title: "No results", subtitle: "No entries match your current filter.")
                 }
             }
             .navigationTitle("History")
+            .navigationSubtitle(entryCount)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink("Add entry") {
@@ -84,6 +92,7 @@ struct ContentView: View {
                     MoodFilterPicker(mood: $moodFilter)
                 }
             }
+            .searchable(text: $searchText, prompt: "Search entries")
         }
     }
 }

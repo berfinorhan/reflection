@@ -7,16 +7,20 @@
 
 enum Mood: String, CaseIterable {
     case great
+    case good
     case okay
     case bad
+    case terrible
     
     var id: String { rawValue }
     
     var title: String {
         switch self {
         case .great: return "Great"
+        case .good: return "Good"
         case .okay: return "Okay"
         case .bad: return "Bad"
+        case .terrible: return "Terrible"
         }
     }
 }
