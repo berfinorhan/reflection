@@ -11,7 +11,7 @@ struct EntryHistory: View {
     
     let entries: [Entry]
     let onEdit: (Entry) -> Void
-    let onDelete: (Set<UUID>) -> Void
+    let onRequestDelete:(Entry) -> Void
         
     var body: some View {
         ForEach(entries) { entry in
@@ -21,10 +21,11 @@ struct EntryHistory: View {
                 }
             } label: {
                 EntryRowView(entry: entry)
+            }.swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                Button("Delete") {
+                    onRequestDelete(entry)
+                }.tint(.red)
             }
-        }.onDelete { indexSet in
-            let ids = Set(indexSet.map { entries[$0].id })
-            onDelete(ids)
         }
     }
 }

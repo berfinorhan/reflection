@@ -37,6 +37,8 @@ struct ContentView: View {
         
     @State private var moodFilter: Mood? = nil
     @State private var searchText = ""
+    @State private var entryPendingDeletion: Entry?
+    @State private var showConfirmation = false
     
     private var sortedEntries: [Entry] {
         entries.sorted { $0.date > $1.date }
@@ -66,11 +68,13 @@ struct ContentView: View {
                             entries[idx] = updated
                         }
                     },
-                    onDelete: { ids in
-                        entries.removeAll { ids.contains($0.id) }
+                    onRequestDelete: { entry in
+                        entryPendingDeletion = entry
+                        showConfirmation = true
                     }
                 )
-            }.overlay {
+            }
+            .overlay {
                 if entries.isEmpty {
                     EmptyListView(title: "No entries", subtitle: "Tap 'Add entry' to get started.")
                 } else if filteredEntries.isEmpty {
@@ -93,6 +97,22 @@ struct ContentView: View {
                 }
             }
             .searchable(text: $searchText, prompt: "Search entries")
+            .alert ("Delete entry", isPresented: $showConfirmation) {
+                Button("Delete", role: .destructive) {
+                    if let entryPendingDeletion {
+                        entries.removeAll { $0.id == entryPendingDeletion.id }
+                        self.entryPendingDeletion = nil
+                        showConfirmation = false
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {
+                    entryPendingDeletion = nil
+                    showConfirmation = false
+                }
+            } message: {
+                Text("Should we get rid of this entry?")
+            }
         }
     }
 }
