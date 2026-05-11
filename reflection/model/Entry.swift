@@ -6,7 +6,7 @@
 //
 import Foundation
 
-struct Entry: Identifiable {
+struct Entry: Identifiable, Codable {
     let id: UUID
     let date: Date
     var mood: Mood

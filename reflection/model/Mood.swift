@@ -5,7 +5,7 @@
 //  Created by Berfin Orhan on 8.04.2026.
 //
 
-enum Mood: String, CaseIterable {
+enum Mood: String, CaseIterable, Codable {
     case great
     case good
     case okay

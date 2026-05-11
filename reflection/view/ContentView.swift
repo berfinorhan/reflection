@@ -17,24 +17,7 @@ struct ContentView: View {
      - Settings
     */
     
-    @State private var entries = [
-        Entry (
-        id: UUID(),
-        date: Date(),
-        mood: Mood.okay,
-        note: "Today was not bad at all."
-    ), Entry (
-        id: UUID(),
-        date: Date(),
-        mood: Mood.bad,
-        note: "Today was not good :/"
-    ), Entry (
-        id: UUID(),
-        date: Date(),
-        mood: Mood.great,
-        note: "Today was great actually :o")
-    ]
-        
+    @State private var entries = EntryStorage.load()
     @State private var moodFilter: Mood? = nil
     @State private var searchText = ""
     @State private var entryPendingDeletion: Entry?
@@ -68,6 +51,7 @@ struct ContentView: View {
                     onEdit: { updated in
                         if let idx = entries.firstIndex(where: {$0.id == updated.id}) {
                             entries[idx] = updated
+                            EntryStorage.save(entries)
                         }
                     },
                     onRequestDelete: { entry in
@@ -92,6 +76,7 @@ struct ContentView: View {
                     NavigationLink("Add entry") {
                         AddEntryView { newEntry in
                             entries.append(newEntry)
+                            EntryStorage.save(entries)
                         }
                     }
                 }
@@ -105,6 +90,7 @@ struct ContentView: View {
                 Button("Delete", role: .destructive) {
                     if let entryPendingDeletion {
                         entries.removeAll { $0.id == entryPendingDeletion.id }
+                        EntryStorage.save(entries)
                         self.entryPendingDeletion = nil
                         showConfirmation = false
                     }
