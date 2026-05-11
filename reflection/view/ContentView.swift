@@ -47,7 +47,9 @@ struct ContentView: View {
     private var filteredEntries: [Entry] {
         sortedEntries.filter { entry in
             let matchesMood = moodFilter == entry.mood || moodFilter == nil
-            let matchesSearch =  entry.note.localizedCaseInsensitiveContains(searchText) || searchText.isEmpty
+            let matchesMoodText = entry.mood.title.localizedCaseInsensitiveContains(searchText)
+            let matchesNoteText = entry.note.localizedCaseInsensitiveContains(searchText)
+            let matchesSearch = matchesNoteText || matchesMoodText || searchText.isEmpty
             return matchesMood && matchesSearch
         }
     }
@@ -77,8 +79,10 @@ struct ContentView: View {
             .overlay {
                 if entries.isEmpty {
                     EmptyListView(title: "No entries", subtitle: "Tap 'Add entry' to get started.")
-                } else if filteredEntries.isEmpty {
+                } else if filteredEntries.isEmpty && searchText.isEmpty {
                     EmptyListView(title: "No results", subtitle: "No entries match your current filter.")
+                } else if filteredEntries.isEmpty && !searchText.isEmpty {
+                    EmptyListView(title: "No results", subtitle: "No entries match your current search.")
                 }
             }
             .navigationTitle("History")
