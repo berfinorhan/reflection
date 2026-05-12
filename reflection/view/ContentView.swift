@@ -17,22 +17,27 @@ struct ContentView: View {
      - Settings
     */
     
-    @State private var entries = EntryStorage.load()
+    @StateObject private var entryStore = EntryStore()
+    
     @State private var moodFilter: Mood? = nil
     @State private var searchText = ""
     @State private var entryPendingDeletion: Entry?
     @State private var showConfirmation = false
-    
+        
     private var sortedEntries: [Entry] {
-        entries.sorted { $0.date > $1.date }
+        entryStore.entries.sorted { $0.date > $1.date }
+    }
+    
+    private var trimmedSearchText: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     private var filteredEntries: [Entry] {
         sortedEntries.filter { entry in
-            let matchesMood = moodFilter == entry.mood || moodFilter == nil
-            let matchesMoodText = entry.mood.title.localizedCaseInsensitiveContains(searchText)
-            let matchesNoteText = entry.note.localizedCaseInsensitiveContains(searchText)
-            let matchesSearch = matchesNoteText || matchesMoodText || searchText.isEmpty
+            let matchesMood = moodFilter == nil || moodFilter == entry.mood
+            let matchesMoodText = entry.mood.title.localizedCaseInsensitiveContains(trimmedSearchText)
+            let matchesNoteText = entry.note.localizedCaseInsensitiveContains(trimmedSearchText)
+            let matchesSearch = trimmedSearchText.isEmpty || matchesNoteText || matchesMoodText
             return matchesMood && matchesSearch
         }
     }
@@ -49,10 +54,7 @@ struct ContentView: View {
                 EntryHistory(
                     entries: filteredEntries,
                     onEdit: { updated in
-                        if let idx = entries.firstIndex(where: {$0.id == updated.id}) {
-                            entries[idx] = updated
-                            EntryStorage.save(entries)
-                        }
+                        entryStore.update(updated)
                     },
                     onRequestDelete: { entry in
                         entryPendingDeletion = entry
@@ -61,11 +63,11 @@ struct ContentView: View {
                 )
             }
             .overlay {
-                if entries.isEmpty {
+                if entryStore.entries.isEmpty {
                     EmptyListView(title: "No entries", subtitle: "Tap 'Add entry' to get started.")
-                } else if filteredEntries.isEmpty && searchText.isEmpty {
+                } else if filteredEntries.isEmpty && trimmedSearchText.isEmpty {
                     EmptyListView(title: "No results", subtitle: "No entries match your current filter.")
-                } else if filteredEntries.isEmpty && !searchText.isEmpty {
+                } else if filteredEntries.isEmpty && !trimmedSearchText.isEmpty {
                     EmptyListView(title: "No results", subtitle: "No entries match your current search.")
                 }
             }
@@ -75,8 +77,7 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink("Add entry") {
                         AddEntryView { newEntry in
-                            entries.append(newEntry)
-                            EntryStorage.save(entries)
+                            entryStore.add(newEntry)
                         }
                     }
                 }
@@ -89,8 +90,7 @@ struct ContentView: View {
             .alert ("Delete entry", isPresented: $showConfirmation) {
                 Button("Delete", role: .destructive) {
                     if let entryPendingDeletion {
-                        entries.removeAll { $0.id == entryPendingDeletion.id }
-                        EntryStorage.save(entries)
+                        entryStore.delete(entryPendingDeletion)
                         self.entryPendingDeletion = nil
                         showConfirmation = false
                     }
