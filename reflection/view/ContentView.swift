@@ -18,6 +18,7 @@ struct ContentView: View {
     */
     
     @StateObject private var entryStore = EntryStore()
+    @StateObject private var appSettings = AppSettings()
     
     @State private var moodFilter: Mood? = nil
     @State private var searchText = ""
@@ -74,36 +75,45 @@ struct ContentView: View {
             .navigationTitle("History")
             .navigationSubtitle(entryCount)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    MoodFilterPicker(mood: $moodFilter)
+                }
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink("Add entry") {
-                        AddEntryView { newEntry in
+                        AddEntryView (defaultMood: appSettings.defaultMood) { newEntry in
                             entryStore.add(newEntry)
                         }
                     }
                 }
                 
-                ToolbarItem(placement: .topBarLeading) {
-                    MoodFilterPicker(mood: $moodFilter)
-                }
-            }
-            .searchable(text: $searchText, prompt: "Search entries")
-            .alert ("Delete entry", isPresented: $showConfirmation) {
-                Button("Delete", role: .destructive) {
-                    if let entryPendingDeletion {
-                        entryStore.delete(entryPendingDeletion)
-                        self.entryPendingDeletion = nil
-                        showConfirmation = false
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        SettingsView(appSettings: appSettings)
+                    } label: {
+                        Image(systemName: "gearshape")
                     }
                 }
-
-                Button("Cancel", role: .cancel) {
-                    entryPendingDeletion = nil
-                    showConfirmation = false
-                }
-            } message: {
-                Text("Should we get rid of this entry?")
             }
         }
+        .searchable(text: $searchText, prompt: "Search entries")
+        .alert ("Delete entry", isPresented: $showConfirmation) {
+            Button("Delete", role: .destructive) {
+                if let entryPendingDeletion {
+                    entryStore.delete(entryPendingDeletion)
+                    self.entryPendingDeletion = nil
+                    showConfirmation = false
+                }
+            }
+            
+            Button("Cancel", role: .cancel) {
+                entryPendingDeletion = nil
+                showConfirmation = false
+            }
+        } message: {
+            Text("Should we get rid of this entry?")
+        }
+        
     }
 }
 

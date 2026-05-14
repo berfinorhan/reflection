@@ -11,9 +11,17 @@ struct AddEntryView: View {
     
     @Environment(\.dismiss) private var dismiss
     @State private var note: String = ""
-    @State private var mood: Mood = Mood.great
+    @State private var mood: Mood
     @State private var date: Date = Date()
+    
+    let defaultMood: Mood
     let onSave: (Entry) -> Void
+    
+    init (defaultMood: Mood, onSave: @escaping (Entry) -> Void) {
+        self.defaultMood = defaultMood
+        self.onSave = onSave
+        _mood = State(initialValue: defaultMood)
+    }
     
     var body: some View {
         Form {
@@ -33,10 +41,10 @@ struct AddEntryView: View {
     
     func clearNoteState () {
         note = ""
-        mood = .great
+        mood = defaultMood
     }
 }
 
 #Preview {
-    AddEntryView() {_ in}
+    AddEntryView(defaultMood: .great) {_ in}
 }
