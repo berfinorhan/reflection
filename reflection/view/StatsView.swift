@@ -11,28 +11,32 @@ struct StatsView: View {
     
     let entries: [Entry]
     
-    private var totalEntryCount: Int {
-        entries.count
+    private var entryStats: EntryStats {
+        EntryStats(entries: entries)
     }
     
-    private var moodCounts: [Mood: Int] {
-        Dictionary(grouping: entries, by: \.mood)
-            .mapValues(\.count)
-    }
-    
-    private var mostCommonMood: Mood? {
-        moodCounts.max(by: { $0.value < $1.value })?.key
+    private var mostCommonMoodText: String {
+        let moods = entryStats.mostCommonMoods
+
+        if moods.isEmpty {
+            return "No moods yet"
+        } else if moods.count == 1 {
+            return moods[0].title
+        } else {
+            return moods.map(\.title).joined(separator: ", ")
+        }
     }
     
     var body: some View {
+        
         NavigationStack {
             if entries.isEmpty {
                 EmptyListView(title: "No entries", subtitle: "Add entries to see your stats.")
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        SummaryCard(totalEntryCount: totalEntryCount, mostCommonMood: mostCommonMood)
-                        MoodBreakdownCard(moodCounts: moodCounts)
+                        SummaryCard(totalEntryCount: entryStats.totalEntryCount, mostCommonMood: mostCommonMoodText)
+                        MoodBreakdownCard(moodCounts: entryStats.moodCounts)
                     }
                 }
                 .padding()
@@ -46,14 +50,14 @@ struct StatsView: View {
 struct SummaryCard: View {
     
     let totalEntryCount: Int
-    let mostCommonMood: Mood?
+    let mostCommonMood: String
     
     var body: some View {
         VStack (alignment: .leading){
             Text("Summary").font(Font.headline)
             Divider()
             LabeledContent("Total entry count", value: String(totalEntryCount))
-            LabeledContent("Most common mood", value: mostCommonMood?.title ?? "N/A")
+            LabeledContent("Most common mood", value: mostCommonMood)
         }
         .padding()
         .background(.white)

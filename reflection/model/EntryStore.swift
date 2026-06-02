@@ -19,6 +19,11 @@ final class EntryStore: ObservableObject {
         entries = EntryStorage.load()
     }
     
+    // For tests
+    init (entries: [Entry]) {
+        self.entries = entries
+    }
+    
     func add(_ entry: Entry) {
         entries.append(entry)
     }
